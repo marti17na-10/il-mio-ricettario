@@ -225,36 +225,47 @@
       }
     }
 
-    function openRecipe(id) {
-      const r = allRecipes.find(item => item.id == id);
-      if (!r) return;
+function openRecipe(id) {
+      // Troviamo la ricetta convertendo entrambi gli ID in stringhe per evitare errori di tipo
+      const r = allRecipes.find(item => String(item.id) === String(id));
+      
+      if (!r) {
+        alert("Impossibile trovare la ricetta selezionata.");
+        return;
+      }
 
       document.getElementById('view-content').innerHTML = `
         <div class="text-center">
-          <span class="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full uppercase">${r.categoria}</span>
-          <h2 class="text-3xl font-fun text-gray-800 mt-2">${r.titolo}</h2>
-          ${r.tempo ? `<p class="text-sm text-gray-500 mt-1">⏱️ Tempo: ${r.tempo}</p>` : ''}
+          <span class="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full uppercase">${r.categoria || 'Generale'}</span>
+          <h2 class="text-3xl font-fun text-gray-800 mt-2">${r.titolo || ''}</h2>
+          ${r.tempo ? `<p class="text-sm text-gray-500 mt-1">⏱️ Tempo di preparazione: ${r.tempo}</p>` : ''}
         </div>
-        ${r.immagine_url ? `<img src="${r.immagine_url}" class="w-full h-64 object-cover rounded-xl shadow">` : ''}
+        ${r.immagine_url ? `<img src="${r.immagine_url}" class="w-full h-64 object-cover rounded-xl shadow mt-4">` : ''}
         ${r.ingredienti ? `
-          <div>
+          <div class="mt-4">
             <h3 class="text-lg font-bold font-fun text-amber-600 border-b pb-1">🛒 Ingredienti</h3>
             <p class="whitespace-pre-line text-sm mt-2 text-gray-700">${r.ingredienti}</p>
           </div>
         ` : ''}
         ${r.preparazione ? `
-          <div>
+          <div class="mt-4">
             <h3 class="text-lg font-bold font-fun text-amber-600 border-b pb-1">👩‍🍳 Preparazione</h3>
             <p class="whitespace-pre-line text-sm mt-2 text-gray-700">${r.preparazione}</p>
           </div>
         ` : ''}
         ${r.note ? `
-          <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
-            <h3 class="text-sm font-bold text-amber-800">📝 Note</h3>
+          <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mt-4">
+            <h3 class="text-sm font-bold text-amber-800">📝 Note aggiuntive</h3>
             <p class="whitespace-pre-line text-sm mt-1 text-amber-900">${r.note}</p>
           </div>
         ` : ''}
+        ${r.fonte ? `
+          <div class="mt-4 text-xs text-gray-400">
+            Fonte: <a href="${r.fonte}" target="_blank" class="text-amber-600 underline">${r.fonte}</a>
+          </div>
+        ` : ''}
       `;
+      
       toggleModal('view-modal');
     }
 
