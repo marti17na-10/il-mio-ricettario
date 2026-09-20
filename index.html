@@ -127,19 +127,21 @@
   </footer>
 
   <script>
-    // --- SOSTITUISCI CON LE TUE CHIAVI SUPABASE ---
+    // Configurazione Supabase
     const SUPABASE_URL = 'https://zglusunjhvomtlyxpvof.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_ODKDgvBJ6h4VLDF54BfUjg_12uESN_4';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = 'sb_publishable_0DKDgvB3J6h4VLDF54bFUjg_12uESN_4'; // Assicurati sia la tua chiave completa
+    
+    // Inizializzazione corretta del client Supabase
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let allRecipes = [];
 
-    // Carica ricette da Supabase
+    // Funzione per caricare le ricette
     async function fetchRecipes() {
-      const { data, error } = await supabase.from('ricette').select('*').order('created_at', { ascending: false });
+      const { data, error } = await db.from('ricette').select('*').order('created_at', { ascending: false });
       if (error) {
         console.error("Errore caricamento:", error);
-        document.getElementById('recipes-grid').innerHTML = `<p class="text-center text-red-500 col-span-full">Errore di connessione al database. Verifica le chiavi Supabase.</p>`;
+        document.getElementById('recipes-grid').innerHTML = `<p class="text-center text-red-500 col-span-full py-10">Errore nel caricamento del database: ${error.message}</p>`;
         return;
       }
       allRecipes = data || [];
@@ -149,7 +151,7 @@
     function renderRecipes(recipes) {
       const grid = document.getElementById('recipes-grid');
       if (recipes.length === 0) {
-        grid.innerHTML = `<p class="text-center text-gray-500 col-span-full py-10">Nessuna ricetta trovata. Clicca su "+ Nuova Ricetta" per aggiungerne una!</p>`;
+        grid.innerHTML = `<p class="text-center text-gray-500 col-span-full py-10">Nessuna ricetta trovata. Clicca su "✏️ Nuova Ricetta" per aggiungerne una!</p>`;
         return;
       }
       grid.innerHTML = recipes.map(r => `
@@ -194,16 +196,16 @@
         fonte: document.getElementById('f-fonte').value
       };
 
-      const { error } = await supabase.from('ricette').insert([newRecipe]);
-      if (error) alert("Errore nel salvataggio: " + error.message);
-      else {
+      const { error } = await db.from('ricette').insert([newRecipe]);
+      if (error) {
+        alert("Errore durante il salvataggio: " + error.message);
+      } else {
         document.getElementById('recipe-form').reset();
         toggleModal('add-modal');
         fetchRecipes();
       }
     }
 
-    // Importatore automatico da Link (usando l'API Microlink)
     async function importFromUrl() {
       const url = document.getElementById('import-url').value;
       if (!url) return alert("Inserisci un link valido!");
@@ -216,22 +218,22 @@
           if (json.data.image) document.getElementById('f-immagine').value = json.data.image.url;
           if (json.data.description) document.getElementById('f-preparazione').value = json.data.description;
           document.getElementById('f-fonte').value = url;
-          alert("Dati estratti con successo! Verifica i campi e completa gli ingredienti.");
+          alert("Dati estratti con successo! Completa gli ingredienti prima di salvare.");
         }
       } catch (err) {
-        alert("Impossibile estrarre automaticamente i dati. Inserisci i dettagli manualmente.");
+        alert("Impossibile estrarre i dati automaticamente. Compila i campi manualmente.");
       }
     }
 
     function openRecipe(id) {
-      const r = allRecipes.find(item => item.id === id);
+      const r = allRecipes.find(item => item.id == id);
       if (!r) return;
 
       document.getElementById('view-content').innerHTML = `
         <div class="text-center">
           <span class="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full uppercase">${r.categoria}</span>
           <h2 class="text-3xl font-fun text-gray-800 mt-2">${r.titolo}</h2>
-          ${r.tempo ? `<p class="text-sm text-gray-500 mt-1">⏱️ Tempo di preparazione: ${r.tempo}</p>` : ''}
+          ${r.tempo ? `<p class="text-sm text-gray-500 mt-1">⏱️ Tempo: ${r.tempo}</p>` : ''}
         </div>
         ${r.immagine_url ? `<img src="${r.immagine_url}" class="w-full h-64 object-cover rounded-xl shadow">` : ''}
         ${r.ingredienti ? `
@@ -248,7 +250,7 @@
         ` : ''}
         ${r.note ? `
           <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
-            <h3 class="text-sm font-bold text-amber-800">📝 Note aggiuntive</h3>
+            <h3 class="text-sm font-bold text-amber-800">📝 Note</h3>
             <p class="whitespace-pre-line text-sm mt-1 text-amber-900">${r.note}</p>
           </div>
         ` : ''}
@@ -256,7 +258,11 @@
       toggleModal('view-modal');
     }
 
+    // Caricamento iniziale
     fetchRecipes();
+  </script>
+</body>
+</html>
   </script>
 </body>
 </html>
