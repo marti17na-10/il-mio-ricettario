@@ -17,6 +17,47 @@
       .print-modal-container { position: absolute; top: 0; left: 0; width: 100%; height: auto; background: white; z-index: 9999; }
     }
   </style>
+  <style>
+  @media print {
+    /* Nasconde elementi di navigazione, bottoni e finestre modal */
+    body * {
+      visibility: hidden;
+    }
+    
+    /* Mostra solo la ricetta selezionata o la griglia ricette pulita */
+    #recipes-grid, #recipes-grid * {
+      visibility: visible;
+    }
+
+    #recipes-grid {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      display: block !important;
+    }
+
+    .no-print, button, nav, header, .modal {
+      display: none !important;
+    }
+
+    /* Stile scheda ricetta per la stampa */
+    .recipe-card {
+      page-break-inside: avoid;
+      border: 1px solid #ccc !important;
+      box-shadow: none !important;
+      margin-bottom: 20px;
+      padding: 15px;
+      color: #000 !important;
+      background: #fff !important;
+    }
+
+    img {
+      max-height: 200px !important;
+      object-fit: cover !important;
+    }
+  }
+</style>
 </head>
 <body class="text-gray-800 min-h-screen flex flex-col">
 
@@ -208,7 +249,7 @@
     let allRecipes = [];
 
   // Importazione automatica da URL
-    async function importFromUrl() {
+   async function importFromUrl() {
       const urlInput = document.getElementById('import-url');
       if (!urlInput || !urlInput.value.trim()) {
         alert("Inserisci un link valido!");
@@ -222,30 +263,47 @@
       btn.disabled = true;
 
       try {
-        const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+        // Estrazione dati tramite Microlink API estesa
+        const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}&prerender=true`);
         const json = await res.json();
-        
+
         if (json.status === 'success' && json.data) {
           const d = json.data;
-          
+
+          // 1. Titolo
           if (d.title) {
             document.getElementById('f-titolo').value = d.title;
           }
+
+          // 2. Immagine
           if (d.image && d.image.url) {
             document.getElementById('f-immagine').value = d.image.url;
           }
+
+          // 3. Fonte
+          document.getElementById('f-fonte').value = url;
+
+          // 4. Preparazione / Procedimento
           if (d.description) {
             document.getElementById('f-preparazione').value = d.description;
           }
-          
-          document.getElementById('f-fonte').value = url;
-          alert("✨ Dati estratti con successo! Verifica i campi e aggiungi gli ingredienti prima di salvare.");
+
+          // 5. Tentativo estrazione strutturata degli ingredienti
+          if (d.description && d.description.includes('Ingredienti')) {
+            const parti = d.description.split(/Preparazione|Procedimento/i);
+            if (parti.length > 1) {
+              document.getElementById('f-ingredienti').value = parti[0].replace(/Ingredienti:?/i, '').trim();
+              document.getElementById('f-preparazione').value = parti[1].trim();
+            }
+          }
+
+          alert("✨ Dati estratti con successo! Controlla e integra ingredienti e preparazione se necessario prima di salvare.");
         } else {
           alert("Impossibile estrarre automaticamente i dettagli da questo link. Inserisci i dati manualmente.");
         }
       } catch (err) {
         console.error("Errore importazione:", err);
-        alert("Errore durante il collegamento al link. Prova a compilare i dati manualmente.");
+        alert("Errore durante il collegamento al link. Compila i dati manualmente.");
       } finally {
         btn.innerText = originalText;
         btn.disabled = false;
@@ -434,6 +492,51 @@
       }
     }
 
+  // Funzione per la stampa della ricetta
+   function printRecipe(titolo) {
+  const recipe = allRecipes.find(r => r.titolo === titolo);
+  if (!recipe) return;
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+      <meta charset="UTF-8">
+      <title>${recipe.titolo}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; color: #333; line-height: 1.6; }
+        h1 { color: #d97706; border-bottom: 2px solid #d97706; padding-bottom: 8px; }
+        .meta { font-size: 14px; color: #666; margin-bottom: 15px; }
+        .section-title { font-size: 18px; font-weight: bold; margin-top: 20px; color: #b45309; }
+        .ingredients { background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; white-space: pre-line; }
+        .instructions { white-space: pre-line; }
+        img { max-width: 100%; height: auto; max-height: 250px; border-radius: 8px; margin-bottom: 15px; }
+      </style>
+    </head>
+    <body>
+      <h1>${recipe.titolo}</h1>
+      <div class="meta">
+        <span><strong>Categoria:</strong> ${recipe.categoria || 'Generale'}</span> | 
+        <span><strong>Tempo:</strong> ${recipe.tempo || 'N/D'}</span>
+      </div>
+      ${recipe.immagine_url ? `<img src="${recipe.immagine_url}" alt="${recipe.titolo}">` : ''}
+      
+      <div class="section-title">Ingredienti</div>
+      <div class="ingredients">${recipe.ingredienti || 'Nessun ingrediente specificato.'}</div>
+      
+      <div class="section-title">Preparazione</div>
+      <div class="instructions">${recipe.preparazione || 'Nessun procedimento specificato.'}</div>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+    printWindow.close();
+  }, 250);
+}
     // Caricamento iniziale
     fetchRecipes();
   </script>
