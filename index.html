@@ -126,19 +126,83 @@
     🍰 Il Mio Ricettario Personale
   </footer>
 
-  <script>
+  <!-- Modal Modifica Ricetta -->
+  <div id="edit-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold font-fun text-amber-800">✏️ Modifica Ricetta</h2>
+        <button onclick="toggleModal('edit-modal')" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+      </div>
+
+      <form id="edit-recipe-form" onsubmit="updateRecipe(event)" class="space-y-4">
+        <input type="hidden" id="edit-id">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Titolo Ricetta *</label>
+          <input type="text" id="edit-titolo" required class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Categoria *</label>
+            <select id="edit-categoria" required class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+              <option value="Primi">Primi</option>
+              <option value="Secondi">Secondi</option>
+              <option value="Contorni">Contorni</option>
+              <option value="Dolci">Dolci</option>
+              <option value="Lievitati">Lievitati</option>
+              <option value="Altro">Altro</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tempo di prep.</label>
+            <input type="text" id="edit-tempo" class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">URL Immagine</label>
+          <input type="url" id="edit-immagine" class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Ingredienti</label>
+          <textarea id="edit-ingredienti" rows="3" class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Preparazione</label>
+          <textarea id="edit-preparazione" rows="4" class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Note</label>
+          <textarea id="edit-note" rows="2" class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Link Fonte / Sitoweb</label>
+          <input type="url" id="edit-fonte" class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+
+        <button type="submit" class="w-full bg-amber-500 text-white font-bold p-3 rounded-xl hover:bg-amber-600 transition shadow-md mt-4">
+          💾 Salva Modifiche
+        </button>
+      </form>
+    </div>
+  </div>
+  
+ <script>
     // Configurazione Supabase
     const SUPABASE_URL = 'https://zglusunjhvomtlyxpvof.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnbHVzdW5qaHZvbXRseXhwdm9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4OTY2NDYsImV4cCI6MjEwNTQ3MjY0Nn0.fX_mMqktm2HluRV81fNzO3Qdn6Vn-R9J91TcXyJFWvo'; // Assicurati sia la tua chiave completa
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnbHVzdW5qaHZvbXRseXhwdm9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4OTY2NDYsImV4cCI6MjEwNTQ3MjY0Nn0.fX_mMqktm2HluRV81fNzO3Qdn6Vn-R9J91TcXyJFWvo';
     
-    // Inizializzazione corretta del client Supabase
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let allRecipes = [];
 
-    // Funzione per caricare le ricette
+    // Caricamento ricette
     async function fetchRecipes() {
-      const { data, error } = await db.from('ricette').select('*').order('created_at', { ascending: false });
+      const { data, error } = await db.from('ricette').select('*');
       if (error) {
         console.error("Errore caricamento:", error);
         document.getElementById('recipes-grid').innerHTML = `<p class="text-center text-red-500 col-span-full py-10">Errore nel caricamento del database: ${error.message}</p>`;
@@ -148,6 +212,7 @@
       renderRecipes(allRecipes);
     }
 
+    // Rendering schede ricette
     function renderRecipes(recipes) {
       const grid = document.getElementById('recipes-grid');
       if (recipes.length === 0) {
@@ -155,20 +220,30 @@
         return;
       }
       grid.innerHTML = recipes.map(r => `
-        <div class="bg-white rounded-2xl shadow-md border border-amber-100 overflow-hidden flex flex-col justify-between hover:shadow-lg transition">
+        <div class="bg-white rounded-2xl shadow-md border border-amber-100 overflow-hidden flex flex-col justify-between hover:shadow-lg transition relative group">
           <div>
             <img src="${r.immagine_url || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=500'}" class="w-full h-48 object-cover">
             <div class="p-5">
-              <span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full uppercase">${r.categoria}</span>
+              <span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full uppercase">${r.categoria || 'Generale'}</span>
               <h3 class="text-xl font-bold font-fun mt-2 text-gray-800">${r.titolo}</h3>
               ${r.tempo ? `<p class="text-xs text-gray-500 mt-1">⏱️ ${r.tempo}</p>` : ''}
             </div>
           </div>
-          <div class="p-5 pt-0 flex justify-between items-center border-t border-gray-50 mt-4">
-            ${r.fonte ? `<a href="${r.fonte}" target="_blank" class="text-xs text-amber-600 underline truncate max-w-[120px]">Fonte originale</a>` : '<span></span>'}
-            <button onclick="openRecipe('${r.id}')" class="bg-amber-500 text-white text-xs px-4 py-2 rounded-lg font-bold hover:bg-amber-600">
-              📖 Apri Ricetta
-            </button>
+          <div class="p-5 pt-0 flex flex-col gap-2 border-t border-gray-50 mt-4">
+            <div class="flex justify-between items-center pt-3">
+              ${r.fonte ? `<a href="${r.fonte}" target="_blank" class="text-xs text-amber-600 underline truncate max-w-[100px]">Fonte</a>` : '<span></span>'}
+              <button onclick="openRecipe('${r.id}')" class="bg-amber-500 text-white text-xs px-3 py-2 rounded-lg font-bold hover:bg-amber-600 transition">
+                📖 Apri Ricetta
+              </button>
+            </div>
+            <div class="flex gap-2 justify-end pt-1">
+              <button onclick="openEditModal('${r.id}')" class="text-xs bg-gray-100 text-gray-700 hover:bg-amber-100 hover:text-amber-800 px-2 py-1 rounded font-semibold transition" title="Modifica">
+                ✏️ Modifica
+              </button>
+              <button onclick="deleteRecipe('${r.id}')" class="text-xs bg-red-50 text-red-600 hover:bg-red-100 px-2 py-1 rounded font-semibold transition" title="Elimina">
+                🗑️ Elimina
+              </button>
+            </div>
           </div>
         </div>
       `).join('');
@@ -183,6 +258,7 @@
       document.getElementById(id).classList.toggle('hidden');
     }
 
+    // Salva Nuova Ricetta
     async function saveRecipe(e) {
       e.preventDefault();
       const newRecipe = {
@@ -206,39 +282,16 @@
       }
     }
 
-    async function importFromUrl() {
-      const url = document.getElementById('import-url').value;
-      if (!url) return alert("Inserisci un link valido!");
-
-      try {
-        const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
-        const json = await res.json();
-        if (json.data) {
-          if (json.data.title) document.getElementById('f-titolo').value = json.data.title;
-          if (json.data.image) document.getElementById('f-immagine').value = json.data.image.url;
-          if (json.data.description) document.getElementById('f-preparazione').value = json.data.description;
-          document.getElementById('f-fonte').value = url;
-          alert("Dati estratti con successo! Completa gli ingredienti prima di salvare.");
-        }
-      } catch (err) {
-        alert("Impossibile estrarre i dati automaticamente. Compila i campi manualmente.");
-      }
-    }
-
-function openRecipe(id) {
-      // Troviamo la ricetta convertendo entrambi gli ID in stringhe per evitare errori di tipo
+    // Apri Scheda Ricetta
+    function openRecipe(id) {
       const r = allRecipes.find(item => String(item.id) === String(id));
-      
-      if (!r) {
-        alert("Impossibile trovare la ricetta selezionata.");
-        return;
-      }
+      if (!r) return;
 
       document.getElementById('view-content').innerHTML = `
         <div class="text-center">
           <span class="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full uppercase">${r.categoria || 'Generale'}</span>
-          <h2 class="text-3xl font-fun text-gray-800 mt-2">${r.titolo || ''}</h2>
-          ${r.tempo ? `<p class="text-sm text-gray-500 mt-1">⏱️ Tempo di preparazione: ${r.tempo}</p>` : ''}
+          <h2 class="text-3xl font-fun text-gray-800 mt-2">${r.titolo}</h2>
+          ${r.tempo ? `<p class="text-sm text-gray-500 mt-1">⏱️ Tempo: ${r.tempo}</p>` : ''}
         </div>
         ${r.immagine_url ? `<img src="${r.immagine_url}" class="w-full h-64 object-cover rounded-xl shadow mt-4">` : ''}
         ${r.ingredienti ? `
@@ -255,18 +308,80 @@ function openRecipe(id) {
         ` : ''}
         ${r.note ? `
           <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mt-4">
-            <h3 class="text-sm font-bold text-amber-800">📝 Note aggiuntive</h3>
+            <h3 class="text-sm font-bold text-amber-800">📝 Note</h3>
             <p class="whitespace-pre-line text-sm mt-1 text-amber-900">${r.note}</p>
           </div>
         ` : ''}
-        ${r.fonte ? `
-          <div class="mt-4 text-xs text-gray-400">
-            Fonte: <a href="${r.fonte}" target="_blank" class="text-amber-600 underline">${r.fonte}</a>
-          </div>
-        ` : ''}
+        <div class="mt-6 border-t pt-4 flex justify-end gap-3">
+          <button onclick="toggleModal('view-modal'); openEditModal('${r.id}');" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-xl font-bold text-sm hover:bg-amber-200 transition">
+            ✏️ Modifica Ricetta
+          </button>
+          <button onclick="toggleModal('view-modal'); deleteRecipe('${r.id}');" class="bg-red-100 text-red-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-red-200 transition">
+            🗑️ Elimina Ricetta
+          </button>
+        </div>
       `;
-      
       toggleModal('view-modal');
+    }
+
+    // Apri Modal per Modifica con Dati Precompilati
+    function openEditModal(id) {
+      const r = allRecipes.find(item => String(item.id) === String(id));
+      if (!r) return;
+
+      document.getElementById('edit-id').value = r.id;
+      document.getElementById('edit-titolo').value = r.titolo || '';
+      document.getElementById('edit-categoria').value = r.categoria || 'Primi';
+      document.getElementById('edit-tempo').value = r.tempo || '';
+      document.getElementById('edit-immagine').value = r.immagine_url || '';
+      document.getElementById('edit-ingredienti').value = r.ingredienti || '';
+      document.getElementById('edit-preparazione').value = r.preparazione || '';
+      document.getElementById('edit-note').value = r.note || '';
+      document.getElementById('edit-fonte').value = r.fonte || '';
+
+      toggleModal('edit-modal');
+    }
+
+    // Salva Modifiche nel Database
+    async function updateRecipe(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value;
+
+      const updatedRecipe = {
+        titolo: document.getElementById('edit-titolo').value,
+        categoria: document.getElementById('edit-categoria').value,
+        tempo: document.getElementById('edit-tempo').value,
+        immagine_url: document.getElementById('edit-immagine').value,
+        ingredienti: document.getElementById('edit-ingredienti').value,
+        preparazione: document.getElementById('edit-preparazione').value,
+        note: document.getElementById('edit-note').value,
+        fonte: document.getElementById('edit-fonte').value
+      };
+
+      const { error } = await db.from('ricette').update(updatedRecipe).eq('id', id);
+
+      if (error) {
+        alert("Errore durante l'aggiornamento: " + error.message);
+      } else {
+        toggleModal('edit-modal');
+        fetchRecipes();
+      }
+    }
+
+    // Elimina Ricetta
+    async function deleteRecipe(id) {
+      const r = allRecipes.find(item => String(item.id) === String(id));
+      const confirmDelete = confirm(`Sei sicura di voler eliminare la ricetta "${r ? r.titolo : ''}"?`);
+      
+      if (!confirmDelete) return;
+
+      const { error } = await db.from('ricette').delete().eq('id', id);
+
+      if (error) {
+        alert("Errore durante l'eliminazione: " + error.message);
+      } else {
+        fetchRecipes();
+      }
     }
 
     // Caricamento iniziale
