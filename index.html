@@ -17,47 +17,6 @@
       .print-modal-container { position: absolute; top: 0; left: 0; width: 100%; height: auto; background: white; z-index: 9999; }
     }
   </style>
-  <style>
-  @media print {
-    /* Nasconde elementi di navigazione, bottoni e finestre modal */
-    body * {
-      visibility: hidden;
-    }
-    
-    /* Mostra solo la ricetta selezionata o la griglia ricette pulita */
-    #recipes-grid, #recipes-grid * {
-      visibility: visible;
-    }
-
-    #recipes-grid {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      display: block !important;
-    }
-
-    .no-print, button, nav, header, .modal {
-      display: none !important;
-    }
-
-    /* Stile scheda ricetta per la stampa */
-    .recipe-card {
-      page-break-inside: avoid;
-      border: 1px solid #ccc !important;
-      box-shadow: none !important;
-      margin-bottom: 20px;
-      padding: 15px;
-      color: #000 !important;
-      background: #fff !important;
-    }
-
-    img {
-      max-height: 200px !important;
-      object-fit: cover !important;
-    }
-  }
-</style>
 </head>
 <body class="text-gray-800 min-h-screen flex flex-col">
 
@@ -74,15 +33,15 @@
 
   <nav class="no-print bg-amber-100 p-4 shadow-inner border-b border-amber-200 sticky top-0 z-20">
     <div class="max-w-5xl mx-auto flex flex-wrap justify-center gap-2 text-sm font-semibold">
-        <button onclick="filterCategory('tutte')" class="px-4 py-2 rounded-full bg-amber-500 text-white shadow hover:bg-amber-600">Tutte</button>
-        <button onclick="filterCategory('Antipasti e Aperitivi')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Antipasti e Aperitivi</button>
-        <button onclick="filterCategory('Primi Piatti')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Primi Piatti</button>
-        <button onclick="filterCategory('Secondi Piatti')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Secondi Piatti</button>
-        <button onclick="filterCategory('Contorni')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Contorni</button>
-        <button onclick="filterCategory('Pizza, Pane e Focacce')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Pizza, Pane e Focacce</button>
-        <button onclick="filterCategory('Dolci')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Dolci</button>
-        <button onclick="filterCategory('Altro')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Altro</button>
-      </div>
+      <button onclick="filterCategory('tutte')" class="px-4 py-2 rounded-full bg-amber-500 text-white shadow hover:bg-amber-600">Tutte</button>
+      <button onclick="filterCategory('Antipasti e Aperitivi')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Antipasti e Aperitivi</button>
+      <button onclick="filterCategory('Primi Piatti')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Primi Piatti</button>
+      <button onclick="filterCategory('Secondi Piatti')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Secondi Piatti</button>
+      <button onclick="filterCategory('Contorni')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Contorni</button>
+      <button onclick="filterCategory('Pizza, Pane e Focacce')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Pizza, Pane e Focacce</button>
+      <button onclick="filterCategory('Dolci')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Dolci</button>
+      <button onclick="filterCategory('Altro')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">Altro</button>
+    </div>
   </nav>
 
   <main class="max-w-5xl mx-auto p-6 flex-grow">
@@ -91,6 +50,7 @@
     </div>
   </main>
 
+  <!-- Modal Aggiungi Ricetta -->
   <div id="add-modal" class="no-print hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
     <div class="bg-white p-6 md:p-8 rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl">
       <button onclick="toggleModal('add-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-black text-xl font-bold">✖</button>
@@ -116,24 +76,29 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-gray-600 uppercase">Categoria *</label>
-           <select id="f-categoria" required class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-  <option value="Primi">Primi</option>
-  <option value="Secondi">Secondi</option>
-  <option value="Contorni">Contorni</option>
-  <option value="Lievitati">Pizza, Pane e Focacce</option>
-  <option value="Dolci">Dolci</option>
-  <option value="Altro">Altro</option>
-</select>
+            <select id="f-categoria" required class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+              <option value="Antipasti e Aperitivi">Antipasti e Aperitivi</option>
+              <option value="Primi Piatti">Primi Piatti</option>
+              <option value="Secondi Piatti">Secondi Piatti</option>
+              <option value="Contorni">Contorni</option>
+              <option value="Pizza, Pane e Focacce">Pizza, Pane e Focacce</option>
+              <option value="Dolci">Dolci</option>
+              <option value="Altro">Altro</option>
+            </select>
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 uppercase">Tempo di Preparazione</label>
             <input type="text" id="f-tempo" placeholder="es. 30 minuti" class="w-full p-2 border rounded-lg">
           </div>
         </div>
+        
         <div>
-          <label class="block text-xs font-bold text-gray-600 uppercase">URL Immagine</label>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Immagine Ricetta</label>
+          <input type="file" id="f-file-immagine" accept="image/*" class="mb-2 text-xs w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+          <p class="text-[10px] text-gray-400 font-bold mb-1">OPPURE INCOLLA URL IMMAGINE:</p>
           <input type="url" id="f-immagine" placeholder="https://..." class="w-full p-2 border rounded-lg">
         </div>
+
         <div>
           <label class="block text-xs font-bold text-gray-600 uppercase">Ingredienti</label>
           <textarea id="f-ingredienti" rows="3" placeholder="Un ingrediente per riga..." class="w-full p-2 border rounded-lg"></textarea>
@@ -156,22 +121,13 @@
     </div>
   </div>
 
+  <!-- Modal Visualizza Ricetta -->
   <div id="view-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 print-modal-container">
     <div class="bg-white p-6 md:p-8 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl">
       <button onclick="toggleModal('view-modal')" class="no-print absolute top-4 right-4 text-gray-400 hover:text-black text-xl font-bold">✖</button>
-      
-      <div id="view-content" class="space-y-6">
-        </div>
-
-      <div class="no-print mt-8 flex justify-end gap-3 border-t pt-4">
-        <button onclick="window.print()" class="bg-amber-500 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-amber-600">🖨️ Stampa / Salva PDF</button>
-      </div>
+      <div id="view-content" class="space-y-6"></div>
     </div>
   </div>
-
-  <footer class="no-print text-center py-6 text-xs text-amber-700">
-    🍰 Il Mio Ricettario Personale
-  </footer>
 
   <!-- Modal Modifica Ricetta -->
   <div id="edit-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
@@ -191,15 +147,15 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Categoria *</label>
-           <select id="edit-categoria" required class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-  <option value="Antipasti e Aperitivi">Antipasti e Aperitivi</option>
-  <option value="Primi Piatti">Primi Piatti</option>
-  <option value="Secondi Piatti">Secondi Piatti</option>
-  <option value="Contorni">Contorni</option>
-  <option value="Pizza, Pane e Focacce">Pizza, Pane e Focacce</option>
-  <option value="Dolci">Dolci</option>
-  <option value="Altro">Altro</option>
-</select>
+            <select id="edit-categoria" required class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+              <option value="Antipasti e Aperitivi">Antipasti e Aperitivi</option>
+              <option value="Primi Piatti">Primi Piatti</option>
+              <option value="Secondi Piatti">Secondi Piatti</option>
+              <option value="Contorni">Contorni</option>
+              <option value="Pizza, Pane e Focacce">Pizza, Pane e Focacce</option>
+              <option value="Dolci">Dolci</option>
+              <option value="Altro">Altro</option>
+            </select>
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tempo di prep.</label>
@@ -208,7 +164,9 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">URL Immagine</label>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Immagine Ricetta</label>
+          <input type="file" id="edit-file-immagine" accept="image/*" class="mb-2 text-xs w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+          <p class="text-[10px] text-gray-400 font-bold mb-1">OPPURE INCOLLA URL IMMAGINE:</p>
           <input type="url" id="edit-immagine" class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
         </div>
 
@@ -238,8 +196,12 @@
       </form>
     </div>
   </div>
-  
-<script>
+
+  <footer class="no-print text-center py-6 text-xs text-amber-700">
+    🍰 Il Mio Ricettario Personale
+  </footer>
+
+  <script>
     // Configurazione Supabase
     const SUPABASE_URL = 'https://zglusunjhvomtlyxpvof.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnbHVzdW5qaHZvbXRseXhwdm9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4OTY2NDYsImV4cCI6MjEwNTQ3MjY0Nn0.fX_mMqktm2HluRV81fNzO3Qdn6Vn-R9J91TcXyJFWvo';
@@ -248,8 +210,26 @@
 
     let allRecipes = [];
 
-  // Importazione automatica da URL
-   async function importFromUrl() {
+    // Helper Lettura Immagine da File o URL
+    function getImageUrl(fileInputId, urlInputId) {
+      return new Promise((resolve) => {
+        const fileInput = document.getElementById(fileInputId);
+        const urlInput = document.getElementById(urlInputId);
+
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) { resolve(e.target.result); };
+          reader.readAsDataURL(fileInput.files[0]);
+        } else if (urlInput && urlInput.value.trim()) {
+          resolve(urlInput.value.trim());
+        } else {
+          resolve('');
+        }
+      });
+    }
+
+    // Importazione automatica da URL
+    async function importFromUrl() {
       const urlInput = document.getElementById('import-url');
       if (!urlInput || !urlInput.value.trim()) {
         alert("Inserisci un link valido!");
@@ -263,32 +243,17 @@
       btn.disabled = true;
 
       try {
-        // Estrazione dati tramite Microlink API estesa
         const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}&prerender=true`);
         const json = await res.json();
 
         if (json.status === 'success' && json.data) {
           const d = json.data;
 
-          // 1. Titolo
-          if (d.title) {
-            document.getElementById('f-titolo').value = d.title;
-          }
-
-          // 2. Immagine
-          if (d.image && d.image.url) {
-            document.getElementById('f-immagine').value = d.image.url;
-          }
-
-          // 3. Fonte
+          if (d.title) document.getElementById('f-titolo').value = d.title;
+          if (d.image && d.image.url) document.getElementById('f-immagine').value = d.image.url;
           document.getElementById('f-fonte').value = url;
+          if (d.description) document.getElementById('f-preparazione').value = d.description;
 
-          // 4. Preparazione / Procedimento
-          if (d.description) {
-            document.getElementById('f-preparazione').value = d.description;
-          }
-
-          // 5. Tentativo estrazione strutturata degli ingredienti
           if (d.description && d.description.includes('Ingredienti')) {
             const parti = d.description.split(/Preparazione|Procedimento/i);
             if (parti.length > 1) {
@@ -309,7 +274,7 @@
         btn.disabled = false;
       }
     }
-  
+
     // Caricamento ricette
     async function fetchRecipes() {
       const { data, error } = await db.from('ricette').select('*');
@@ -347,6 +312,9 @@
               </button>
             </div>
             <div class="flex gap-2 justify-end pt-1">
+              <button onclick="printRecipe('${r.titolo.replace(/'/g, "\\'")}')" class="text-xs bg-amber-50 text-amber-800 hover:bg-amber-100 px-2 py-1 rounded font-semibold transition" title="Stampa">
+                🖨️ Stampa
+              </button>
               <button onclick="openEditModal('${r.titolo.replace(/'/g, "\\'")}')" class="text-xs bg-gray-100 text-gray-700 hover:bg-amber-100 hover:text-amber-800 px-2 py-1 rounded font-semibold transition" title="Modifica">
                 ✏️ Modifica
               </button>
@@ -371,11 +339,13 @@
     // Salva Nuova Ricetta
     async function saveRecipe(e) {
       e.preventDefault();
+      const imgUrl = await getImageUrl('f-file-immagine', 'f-immagine');
+
       const newRecipe = {
-        titolo: document.getElementById('f-titolo').value,
+        titolo: document.getElementById('f-titolo').value.trim(),
         categoria: document.getElementById('f-categoria').value,
         tempo: document.getElementById('f-tempo').value,
-        immagine_url: document.getElementById('f-immagine').value,
+        immagine_url: imgUrl,
         ingredienti: document.getElementById('f-ingredienti').value,
         preparazione: document.getElementById('f-preparazione').value,
         note: document.getElementById('f-note').value,
@@ -423,6 +393,9 @@
           </div>
         ` : ''}
         <div class="mt-6 border-t pt-4 flex justify-end gap-3">
+          <button onclick="printRecipe('${r.titolo.replace(/'/g, "\\'")}');" class="bg-amber-500 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-amber-600 transition">
+            🖨️ Stampa Ricetta
+          </button>
           <button onclick="toggleModal('view-modal'); openEditModal('${r.titolo.replace(/'/g, "\\'")}');" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-xl font-bold text-sm hover:bg-amber-200 transition">
             ✏️ Modifica Ricetta
           </button>
@@ -439,9 +412,9 @@
       const r = allRecipes.find(item => item.titolo === titolo);
       if (!r) return;
 
-      document.getElementById('edit-id').value = r.titolo; // Titolo vecchio per la query
+      document.getElementById('edit-id').value = r.titolo;
       document.getElementById('edit-titolo').value = r.titolo || '';
-      document.getElementById('edit-categoria').value = r.categoria || 'Primi';
+      document.getElementById('edit-categoria').value = r.categoria || 'Antipasti e Aperitivi';
       document.getElementById('edit-tempo').value = r.tempo || '';
       document.getElementById('edit-immagine').value = r.immagine_url || '';
       document.getElementById('edit-ingredienti').value = r.ingredienti || '';
@@ -456,12 +429,13 @@
     async function updateRecipe(e) {
       e.preventDefault();
       const oldTitle = document.getElementById('edit-id').value;
+      const imgUrl = await getImageUrl('edit-file-immagine', 'edit-immagine');
 
       const updatedRecipe = {
-        titolo: document.getElementById('edit-titolo').value,
+        titolo: document.getElementById('edit-titolo').value.trim(),
         categoria: document.getElementById('edit-categoria').value,
         tempo: document.getElementById('edit-tempo').value,
-        immagine_url: document.getElementById('edit-immagine').value,
+        immagine_url: imgUrl,
         ingredienti: document.getElementById('edit-ingredienti').value,
         preparazione: document.getElementById('edit-preparazione').value,
         note: document.getElementById('edit-note').value,
@@ -492,56 +466,79 @@
       }
     }
 
-  // Funzione per la stampa della ricetta
-   function printRecipe(titolo) {
-  const recipe = allRecipes.find(r => r.titolo === titolo);
-  if (!recipe) return;
+    // Funzione stampa ricetta
+    function printRecipe(titolo) {
+      const recipe = allRecipes.find(r => r.titolo === titolo);
+      if (!recipe) {
+        alert("Ricetta non trovata!");
+        return;
+      }
 
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html lang="it">
-    <head>
-      <meta charset="UTF-8">
-      <title>${recipe.titolo}</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 20px; color: #333; line-height: 1.6; }
-        h1 { color: #d97706; border-bottom: 2px solid #d97706; padding-bottom: 8px; }
-        .meta { font-size: 14px; color: #666; margin-bottom: 15px; }
-        .section-title { font-size: 18px; font-weight: bold; margin-top: 20px; color: #b45309; }
-        .ingredients { background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; white-space: pre-line; }
-        .instructions { white-space: pre-line; }
-        img { max-width: 100%; height: auto; max-height: 250px; border-radius: 8px; margin-bottom: 15px; }
-      </style>
-    </head>
-    <body>
-      <h1>${recipe.titolo}</h1>
-      <div class="meta">
-        <span><strong>Categoria:</strong> ${recipe.categoria || 'Generale'}</span> | 
-        <span><strong>Tempo:</strong> ${recipe.tempo || 'N/D'}</span>
-      </div>
-      ${recipe.immagine_url ? `<img src="${recipe.immagine_url}" alt="${recipe.titolo}">` : ''}
-      
-      <div class="section-title">Ingredienti</div>
-      <div class="ingredients">${recipe.ingredienti || 'Nessun ingrediente specificato.'}</div>
-      
-      <div class="section-title">Preparazione</div>
-      <div class="instructions">${recipe.preparazione || 'Nessun procedimento specificato.'}</div>
-    </body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => {
-    printWindow.print();
-    printWindow.close();
-  }, 250);
-}
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="it">
+        <head>
+          <meta charset="UTF-8">
+          <title>${recipe.titolo} - Ricetta</title>
+          <style>
+            @page { margin: 15mm; }
+            body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1f2937; margin: 0; padding: 20px; line-height: 1.6; }
+            .header { text-align: center; border-bottom: 3px solid #f59e0b; padding-bottom: 15px; margin-bottom: 20px; }
+            .title { font-size: 28px; font-weight: bold; color: #b45309; margin: 0 0 8px 0; }
+            .badges { display: flex; justify-content: center; gap: 15px; font-size: 14px; color: #4b5563; font-weight: 600; }
+            .badge { background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 20px; }
+            .img-container { text-align: center; margin-bottom: 25px; }
+            .recipe-img { max-width: 100%; max-height: 280px; object-fit: cover; border-radius: 12px; border: 1px solid #e5e7eb; }
+            .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+            .section-box { background: #fffbe3; border: 1px solid #fde68a; border-radius: 10px; padding: 15px; }
+            .section-title { font-size: 16px; font-weight: bold; color: #b45309; border-bottom: 2px solid #f59e0b; padding-bottom: 4px; margin-top: 0; margin-bottom: 10px; text-transform: uppercase; }
+            .content { white-space: pre-line; font-size: 14px; }
+            .footer { margin-top: 30px; text-align: center; font-size: 11px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1 class="title">${recipe.titolo}</h1>
+            <div class="badges">
+              <span class="badge">🏷️ ${recipe.categoria || 'Generale'}</span>
+              ${recipe.tempo ? `<span class="badge">⏱️ ${recipe.tempo}</span>` : ''}
+            </div>
+          </div>
+
+          ${recipe.immagine_url ? `
+            <div class="img-container">
+              <img src="${recipe.immagine_url}" class="recipe-img" alt="${recipe.titolo}">
+            </div>
+          ` : ''}
+
+          <div class="grid">
+            <div class="section-box">
+              <h2 class="section-title">🛒 Ingredienti</h2>
+              <div class="content">${recipe.ingredienti || 'Nessun ingrediente inserito.'}</div>
+            </div>
+            <div>
+              <h2 class="section-title">👨‍🍳 Preparazione</h2>
+              <div class="content">${recipe.preparazione || 'Nessun procedimento inserito.'}</div>
+            </div>
+          </div>
+
+          <div class="footer">
+            Stampato dal mio Ricettario Personale
+          </div>
+        </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+    }
+
     // Caricamento iniziale
     fetchRecipes();
-  </script>
-</body>
-</html>
   </script>
 </body>
 </html>
