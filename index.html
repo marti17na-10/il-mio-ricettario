@@ -56,14 +56,17 @@
       
       <h2 class="text-2xl font-fun text-amber-600 mb-4">Aggiungi o Importa Ricetta</h2>
 
+      <!-- Campo Importazione da Link -->
       <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-6">
         <label class="block text-xs font-bold text-amber-800 uppercase mb-1">🔗 Incolla Link (Sito Web, Instagram, TikTok)</label>
         <div class="flex gap-2">
-          <input type="url" id="import-url" placeholder="https://..." class="w-full p-2 text-sm rounded-lg border border-amber-300 focus:outline-none">
-          <button onclick="importFromUrl()" class="bg-amber-500 text-white font-bold px-4 text-sm rounded-lg hover:bg-amber-600 whitespace-nowrap">Importa Dati</button>
+          <input type="url" id="import-url" placeholder="https://www.giallozafferano.it/..." class="w-full p-2 text-sm rounded-lg border border-amber-300 focus:outline-none bg-white">
+          <button type="button" onclick="importFromUrl()" class="bg-amber-500 text-white font-bold px-4 text-sm rounded-lg hover:bg-amber-600 whitespace-nowrap py-2 transition">
+            Importa
+          </button>
         </div>
       </div>
-
+      
       <form id="recipe-form" onsubmit="saveRecipe(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-gray-600 uppercase">Titolo Ricetta *</label>
@@ -204,6 +207,51 @@
 
     let allRecipes = [];
 
+  // Importazione automatica da URL
+    async function importFromUrl() {
+      const urlInput = document.getElementById('import-url');
+      if (!urlInput || !urlInput.value.trim()) {
+        alert("Inserisci un link valido!");
+        return;
+      }
+
+      const url = urlInput.value.trim();
+      const btn = event.target;
+      const originalText = btn.innerText;
+      btn.innerText = "⏳ Importazione in corso...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+        const json = await res.json();
+        
+        if (json.status === 'success' && json.data) {
+          const d = json.data;
+          
+          if (d.title) {
+            document.getElementById('f-titolo').value = d.title;
+          }
+          if (d.image && d.image.url) {
+            document.getElementById('f-immagine').value = d.image.url;
+          }
+          if (d.description) {
+            document.getElementById('f-preparazione').value = d.description;
+          }
+          
+          document.getElementById('f-fonte').value = url;
+          alert("✨ Dati estratti con successo! Verifica i campi e aggiungi gli ingredienti prima di salvare.");
+        } else {
+          alert("Impossibile estrarre automaticamente i dettagli da questo link. Inserisci i dati manualmente.");
+        }
+      } catch (err) {
+        console.error("Errore importazione:", err);
+        alert("Errore durante il collegamento al link. Prova a compilare i dati manualmente.");
+      } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+      }
+    }
+  
     // Caricamento ricette
     async function fetchRecipes() {
       const { data, error } = await db.from('ricette').select('*');
