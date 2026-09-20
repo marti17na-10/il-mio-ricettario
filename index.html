@@ -191,7 +191,7 @@
     </div>
   </div>
   
- <script>
+<script>
     // Configurazione Supabase
     const SUPABASE_URL = 'https://zglusunjhvomtlyxpvof.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnbHVzdW5qaHZvbXRseXhwdm9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4OTY2NDYsImV4cCI6MjEwNTQ3MjY0Nn0.fX_mMqktm2HluRV81fNzO3Qdn6Vn-R9J91TcXyJFWvo';
@@ -232,15 +232,15 @@
           <div class="p-5 pt-0 flex flex-col gap-2 border-t border-gray-50 mt-4">
             <div class="flex justify-between items-center pt-3">
               ${r.fonte ? `<a href="${r.fonte}" target="_blank" class="text-xs text-amber-600 underline truncate max-w-[100px]">Fonte</a>` : '<span></span>'}
-              <button onclick="openRecipe('${r.id}')" class="bg-amber-500 text-white text-xs px-3 py-2 rounded-lg font-bold hover:bg-amber-600 transition">
+              <button onclick="openRecipe('${r.titolo.replace(/'/g, "\\'")}')" class="bg-amber-500 text-white text-xs px-3 py-2 rounded-lg font-bold hover:bg-amber-600 transition">
                 📖 Apri Ricetta
               </button>
             </div>
             <div class="flex gap-2 justify-end pt-1">
-              <button onclick="openEditModal('${r.id}')" class="text-xs bg-gray-100 text-gray-700 hover:bg-amber-100 hover:text-amber-800 px-2 py-1 rounded font-semibold transition" title="Modifica">
+              <button onclick="openEditModal('${r.titolo.replace(/'/g, "\\'")}')" class="text-xs bg-gray-100 text-gray-700 hover:bg-amber-100 hover:text-amber-800 px-2 py-1 rounded font-semibold transition" title="Modifica">
                 ✏️ Modifica
               </button>
-              <button onclick="deleteRecipe('${r.id}')" class="text-xs bg-red-50 text-red-600 hover:bg-red-100 px-2 py-1 rounded font-semibold transition" title="Elimina">
+              <button onclick="deleteRecipe('${r.titolo.replace(/'/g, "\\'")}')" class="text-xs bg-red-50 text-red-600 hover:bg-red-100 px-2 py-1 rounded font-semibold transition" title="Elimina">
                 🗑️ Elimina
               </button>
             </div>
@@ -283,8 +283,8 @@
     }
 
     // Apri Scheda Ricetta
-    function openRecipe(id) {
-      const r = allRecipes.find(item => String(item.id) === String(id));
+    function openRecipe(titolo) {
+      const r = allRecipes.find(item => item.titolo === titolo);
       if (!r) return;
 
       document.getElementById('view-content').innerHTML = `
@@ -313,10 +313,10 @@
           </div>
         ` : ''}
         <div class="mt-6 border-t pt-4 flex justify-end gap-3">
-          <button onclick="toggleModal('view-modal'); openEditModal('${r.id}');" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-xl font-bold text-sm hover:bg-amber-200 transition">
+          <button onclick="toggleModal('view-modal'); openEditModal('${r.titolo.replace(/'/g, "\\'")}');" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-xl font-bold text-sm hover:bg-amber-200 transition">
             ✏️ Modifica Ricetta
           </button>
-          <button onclick="toggleModal('view-modal'); deleteRecipe('${r.id}');" class="bg-red-100 text-red-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-red-200 transition">
+          <button onclick="toggleModal('view-modal'); deleteRecipe('${r.titolo.replace(/'/g, "\\'")}');" class="bg-red-100 text-red-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-red-200 transition">
             🗑️ Elimina Ricetta
           </button>
         </div>
@@ -324,12 +324,12 @@
       toggleModal('view-modal');
     }
 
-    // Apri Modal per Modifica con Dati Precompilati
-    function openEditModal(id) {
-      const r = allRecipes.find(item => String(item.id) === String(id));
+    // Apri Modal Modifica
+    function openEditModal(titolo) {
+      const r = allRecipes.find(item => item.titolo === titolo);
       if (!r) return;
 
-      document.getElementById('edit-id').value = r.id;
+      document.getElementById('edit-id').value = r.titolo; // Titolo vecchio per la query
       document.getElementById('edit-titolo').value = r.titolo || '';
       document.getElementById('edit-categoria').value = r.categoria || 'Primi';
       document.getElementById('edit-tempo').value = r.tempo || '';
@@ -342,10 +342,10 @@
       toggleModal('edit-modal');
     }
 
-    // Salva Modifiche nel Database
+    // Salva Modifiche
     async function updateRecipe(e) {
       e.preventDefault();
-      const id = document.getElementById('edit-id').value;
+      const oldTitle = document.getElementById('edit-id').value;
 
       const updatedRecipe = {
         titolo: document.getElementById('edit-titolo').value,
@@ -358,7 +358,7 @@
         fonte: document.getElementById('edit-fonte').value
       };
 
-      const { error } = await db.from('ricette').update(updatedRecipe).eq('id', id);
+      const { error } = await db.from('ricette').update(updatedRecipe).eq('titolo', oldTitle);
 
       if (error) {
         alert("Errore durante l'aggiornamento: " + error.message);
@@ -369,13 +369,11 @@
     }
 
     // Elimina Ricetta
-    async function deleteRecipe(id) {
-      const r = allRecipes.find(item => String(item.id) === String(id));
-      const confirmDelete = confirm(`Sei sicura di voler eliminare la ricetta "${r ? r.titolo : ''}"?`);
-      
+    async function deleteRecipe(titolo) {
+      const confirmDelete = confirm(`Sei sicura di voler eliminare la ricetta "${titolo}"?`);
       if (!confirmDelete) return;
 
-      const { error } = await db.from('ricette').delete().eq('id', id);
+      const { error } = await db.from('ricette').delete().eq('titolo', titolo);
 
       if (error) {
         alert("Errore durante l'eliminazione: " + error.message);
