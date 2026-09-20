@@ -1,117 +1,279 @@
-<h2 class="text-2xl font-fun text-amber-600 mb-4">Aggiungi o Importa Ricetta</h2>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Il Mio Ricettario 🍳</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Nunito', sans-serif; background-color: #FFFBEB; }
+    h1, h2, h3, .font-fun { font-family: 'Fredoka', cursive; }
+    .bg-amber-custom { background-color: #F59E0B; }
+    @media print {
+      body { background-color: white; color: black; }
+      .no-print { display: none !important; }
+      .print-modal-container { position: absolute; top: 0; left: 0; width: 100%; height: auto; background: white; z-index: 9999; }
+    }
+  </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col">
 
-  <!-- IMPORTATORE AUTOMATICO -->
-  <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-6">
-    <label class="block text-xs font-bold text-amber-800 uppercase mb-1">🔗 Incolla Link (Sito Web, Instagram, TikTok)</label>
-    <div class="flex gap-2">
-      <input type="url" id="import-url" placeholder="https://..." class="w-full p-2 text-sm rounded-lg border border-amber-300 focus:outline-none">
-      <button onclick="importFromUrl()" class="bg-amber-500 text-white font-bold px-4 text-sm rounded-lg hover:bg-amber-600 whitespace-nowrap">Importa Dati</button>
+  <header class="no-print bg-amber-500 text-white p-6 shadow-md text-center">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <h1 class="text-3xl md:text-4xl font-fun tracking-wide flex items-center gap-2">
+        <span>🍳</span> Le Mie Ricette Golose
+      </h1>
+      <button onclick="toggleModal('add-modal')" class="bg-white text-amber-600 font-bold px-5 py-2.5 rounded-full shadow hover:bg-amber-50 transition">
+        ✏️ Nuova Ricetta
+      </button>
+    </div>
+  </header>
+
+  <nav class="no-print bg-amber-100 p-4 shadow-inner border-b border-amber-200 sticky top-0 z-20">
+    <div class="max-w-5xl mx-auto flex flex-wrap justify-center gap-2 text-sm font-semibold">
+      <button onclick="filterCategory('tutte')" class="px-4 py-2 rounded-full bg-amber-500 text-white shadow hover:bg-amber-600">Tutte</button>
+      <button onclick="filterCategory('Antipasti e Aperitivi')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">🥨 Antipasti e Aperitivi</button>
+      <button onclick="filterCategory('Primi Piatti')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">🍝 Primi Piatti</button>
+      <button onclick="filterCategory('Secondi Piatti')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">🍗 Secondi Piatti</button>
+      <button onclick="filterCategory('Pizza, Pane e Focacce')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">🍕 Pizza, Pane e Focacce</button>
+      <button onclick="filterCategory('Dolci')" class="px-4 py-2 rounded-full bg-white text-amber-800 hover:bg-amber-200">🍰 Dolci</button>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto p-6 flex-grow">
+    <div id="recipes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <p class="text-center text-gray-500 col-span-full py-10">Caricamento delle ricette in corso...</p>
+    </div>
+  </main>
+
+  <div id="add-modal" class="no-print hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white p-6 md:p-8 rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl">
+      <button onclick="toggleModal('add-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-black text-xl font-bold">✖</button>
+      
+      <h2 class="text-2xl font-fun text-amber-600 mb-4">Aggiungi o Importa Ricetta</h2>
+
+      <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-6">
+        <label class="block text-xs font-bold text-amber-800 uppercase mb-1">🔗 Incolla Link (Sito Web, Instagram, TikTok)</label>
+        <div class="flex gap-2">
+          <input type="url" id="import-url" placeholder="https://..." class="w-full p-2 text-sm rounded-lg border border-amber-300 focus:outline-none">
+          <button onclick="importFromUrl()" class="bg-amber-500 text-white font-bold px-4 text-sm rounded-lg hover:bg-amber-600 whitespace-nowrap">Importa Dati</button>
+        </div>
+      </div>
+
+      <form id="recipe-form" onsubmit="saveRecipe(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase">Titolo Ricetta *</label>
+          <input type="text" id="f-titolo" required class="w-full p-2 border rounded-lg">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 uppercase">Categoria *</label>
+            <select id="f-categoria" required class="w-full p-2 border rounded-lg bg-white">
+              <option value="Antipasti e Aperitivi">Antipasti e Aperitivi</option>
+              <option value="Primi Piatti">Primi Piatti</option>
+              <option value="Secondi Piatti">Secondi Piatti</option>
+              <option value="Pizza, Pane e Focacce">Pizza, Pane e Focacce</option>
+              <option value="Dolci">Dolci</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 uppercase">Tempo di Preparazione</label>
+            <input type="text" id="f-tempo" placeholder="es. 30 minuti" class="w-full p-2 border rounded-lg">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase">URL Immagine</label>
+          <input type="url" id="f-immagine" placeholder="https://..." class="w-full p-2 border rounded-lg">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase">Ingredienti</label>
+          <textarea id="f-ingredienti" rows="3" placeholder="Un ingrediente per riga..." class="w-full p-2 border rounded-lg"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase">Preparazione / Passaggi</label>
+          <textarea id="f-preparazione" rows="4" placeholder="Spiega come prepararla..." class="w-full p-2 border rounded-lg"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase">Note Aggiuntive</label>
+          <textarea id="f-note" rows="2" placeholder="Consigli, varianti, conservazione..." class="w-full p-2 border rounded-lg"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase">Fonte (Link originale)</label>
+          <input type="url" id="f-fonte" placeholder="https://..." class="w-full p-2 border rounded-lg">
+        </div>
+
+        <button type="submit" class="w-full bg-amber-500 text-white font-bold py-3 rounded-xl shadow hover:bg-amber-600 transition">Salva nel Ricettario 📖</button>
+      </form>
     </div>
   </div>
 
-  <!-- FORM MANUALE -->
-  <form id="recipe-form" onsubmit="saveRecipe(event)" class="space-y-4">
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">Titolo Ricetta *</label>
-      <input type="text" id="f-titolo" required class="w-full p-2 border rounded-lg">
-    </div>
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="block text-xs font-bold text-gray-600 uppercase">Categoria *</label>
-        <select id="f-categoria" required class="w-full p-2 border rounded-lg bg-white">
-          <option value="Antipasti e Aperitivi">Antipasti e Aperitivi</option>
-          <option value="Primi Piatti">Primi Piatti</option>
-          <option value="Secondi Piatti">Secondi Piatti</option>
-          <option value="Pizza, Pane e Focacce">Pizza, Pane e Focacce</option>
-          <option value="Dolci">Dolci</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-gray-600 uppercase">Tempo di Preparazione</label>
-        <input type="text" id="f-tempo" placeholder="es. 30 minuti" class="w-full p-2 border rounded-lg">
+  <div id="view-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 print-modal-container">
+    <div class="bg-white p-6 md:p-8 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl">
+      <button onclick="toggleModal('view-modal')" class="no-print absolute top-4 right-4 text-gray-400 hover:text-black text-xl font-bold">✖</button>
+      
+      <div id="view-content" class="space-y-6">
+        </div>
+
+      <div class="no-print mt-8 flex justify-end gap-3 border-t pt-4">
+        <button onclick="window.print()" class="bg-amber-500 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-amber-600">🖨️ Stampa / Salva PDF</button>
       </div>
     </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">URL Immagine</label>
-      <input type="url" id="f-immagine" placeholder="https://..." class="w-full p-2 border rounded-lg">
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">Ingredienti</label>
-      <textarea id="f-ingredienti" rows="3" placeholder="Un ingrediente per riga..." class="w-full p-2 border rounded-lg"></textarea>
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">Preparazione / Passaggi</label>
-      <textarea id="f-preparazione" rows="4" placeholder="Spiega come prepararla..." class="w-full p-2 border rounded-lg"></textarea>
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">Note Aggiuntive</label>
-      <textarea id="f-note" rows="2" placeholder="Consigli, varianti, conservazione..." class="w-full p-2 border rounded-lg"></textarea>
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">Fonte (Link originale)</label>
-      <input type="url" id="f-fonte" placeholder="https://..." class="w-full p-2 border rounded-lg">
-    </div>
-
-    <button type="submit" class="w-full bg-amber-500 text-white font-bold py-3 rounded-xl shadow hover:bg-amber-600 transition">Salva nel Ricettario 📖</button>
-  </form>
-</div>
-
-
-  <h2 class="text-2xl font-fun text-amber-600 mb-4">✏️ Modifica Ricetta</h2>
-
-  <form id="edit-recipe-form" onsubmit="updateRecipe(event)" class="space-y-4">
-    <input type="hidden" id="edit-id">
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">Titolo Ricetta *</label>
-      <input type="text" id="edit-titolo" required class="w-full p-2 border rounded-lg">
-    </div>
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="block text-xs font-bold text-gray-600 uppercase">Categoria *</label>
-        <select id="edit-categoria" required class="w-full p-2 border rounded-lg bg-white">
-          <option value="Antipasti e Aperitivi">Antipasti e Aperitivi</option>
-          <option value="Primi Piatti">Primi Piatti</option>
-          <option value="Secondi Piatti">Secondi Piatti</option>
-          <option value="Pizza, Pane e Focacce">Pizza, Pane e Focacce</option>
-          <option value="Dolci">Dolci</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-gray-600 uppercase">Tempo di Preparazione</label>
-        <input type="text" id="edit-tempo" class="w-full p-2 border rounded-lg">
-      </div>
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">URL Immagine</label>
-      <input type="url" id="edit-immagine" class="w-full p-2 border rounded-lg">
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">Ingredienti</label>
-      <textarea id="edit-ingredienti" rows="3" class="w-full p-2 border rounded-lg"></textarea>
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">Preparazione / Passaggi</label>
-      <textarea id="edit-preparazione" rows="4" class="w-full p-2 border rounded-lg"></textarea>
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">Note Aggiuntive</label>
-      <textarea id="edit-note" rows="2" class="w-full p-2 border rounded-lg"></textarea>
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-600 uppercase">Fonte (Link originale)</label>
-      <input type="url" id="edit-fonte" class="w-full p-2 border rounded-lg">
-    </div>
-
-    <button type="submit" class="w-full bg-amber-500 text-white font-bold py-3 rounded-xl shadow hover:bg-amber-600 transition">💾 Salva Modifiche</button>
-  </form>
-</div>
-
-
-  <div id="view-content" class="space-y-6">
-    <!-- Contenuto iniettato via JS -->
   </div>
 
-  <div class="no-print mt-8 flex justify-end gap-3 border-t pt-4">
-    <button onclick="window.print()" class="bg-amber-500 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-amber-600">🖨️ Stampa / Salva PDF</button>
-  </div>
-</div>
+  <footer class="no-print text-center py-6 text-xs text-amber-700">
+    🍰 Il Mio Ricettario Personale
+  </footer>
+
+  <script>
+    // Configurazione Supabase
+    const SUPABASE_URL = 'https://zglusunjhvomtlyxpvof.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnbHVzdW5qaHZvbXRseXhwdm9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4OTY2NDYsImV4cCI6MjEwNTQ3MjY0Nn0.fX_mMqktm2HluRV81fNzO3Qdn6Vn-R9J91TcXyJFWvo'; // Assicurati sia la tua chiave completa
+    
+    // Inizializzazione corretta del client Supabase
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allRecipes = [];
+
+    // Funzione per caricare le ricette
+    async function fetchRecipes() {
+      const { data, error } = await db.from('ricette').select('*').order('created_at', { ascending: false });
+      if (error) {
+        console.error("Errore caricamento:", error);
+        document.getElementById('recipes-grid').innerHTML = `<p class="text-center text-red-500 col-span-full py-10">Errore nel caricamento del database: ${error.message}</p>`;
+        return;
+      }
+      allRecipes = data || [];
+      renderRecipes(allRecipes);
+    }
+
+    function renderRecipes(recipes) {
+      const grid = document.getElementById('recipes-grid');
+      if (recipes.length === 0) {
+        grid.innerHTML = `<p class="text-center text-gray-500 col-span-full py-10">Nessuna ricetta trovata. Clicca su "✏️ Nuova Ricetta" per aggiungerne una!</p>`;
+        return;
+      }
+      grid.innerHTML = recipes.map(r => `
+        <div class="bg-white rounded-2xl shadow-md border border-amber-100 overflow-hidden flex flex-col justify-between hover:shadow-lg transition">
+          <div>
+            <img src="${r.immagine_url || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=500'}" class="w-full h-48 object-cover">
+            <div class="p-5">
+              <span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full uppercase">${r.categoria}</span>
+              <h3 class="text-xl font-bold font-fun mt-2 text-gray-800">${r.titolo}</h3>
+              ${r.tempo ? `<p class="text-xs text-gray-500 mt-1">⏱️ ${r.tempo}</p>` : ''}
+            </div>
+          </div>
+          <div class="p-5 pt-0 flex justify-between items-center border-t border-gray-50 mt-4">
+            ${r.fonte ? `<a href="${r.fonte}" target="_blank" class="text-xs text-amber-600 underline truncate max-w-[120px]">Fonte originale</a>` : '<span></span>'}
+            <button onclick="openRecipe('${r.id}')" class="bg-amber-500 text-white text-xs px-4 py-2 rounded-lg font-bold hover:bg-amber-600">
+              📖 Apri Ricetta
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterCategory(cat) {
+      if (cat === 'tutte') renderRecipes(allRecipes);
+      else renderRecipes(allRecipes.filter(r => r.categoria === cat));
+    }
+
+    function toggleModal(id) {
+      document.getElementById(id).classList.toggle('hidden');
+    }
+
+    async function saveRecipe(e) {
+      e.preventDefault();
+      const newRecipe = {
+        titolo: document.getElementById('f-titolo').value,
+        categoria: document.getElementById('f-categoria').value,
+        tempo: document.getElementById('f-tempo').value,
+        immagine_url: document.getElementById('f-immagine').value,
+        ingredienti: document.getElementById('f-ingredienti').value,
+        preparazione: document.getElementById('f-preparazione').value,
+        note: document.getElementById('f-note').value,
+        fonte: document.getElementById('f-fonte').value
+      };
+
+      const { error } = await db.from('ricette').insert([newRecipe]);
+      if (error) {
+        alert("Errore durante il salvataggio: " + error.message);
+      } else {
+        document.getElementById('recipe-form').reset();
+        toggleModal('add-modal');
+        fetchRecipes();
+      }
+    }
+
+    async function importFromUrl() {
+      const url = document.getElementById('import-url').value;
+      if (!url) return alert("Inserisci un link valido!");
+
+      try {
+        const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+        const json = await res.json();
+        if (json.data) {
+          if (json.data.title) document.getElementById('f-titolo').value = json.data.title;
+          if (json.data.image) document.getElementById('f-immagine').value = json.data.image.url;
+          if (json.data.description) document.getElementById('f-preparazione').value = json.data.description;
+          document.getElementById('f-fonte').value = url;
+          alert("Dati estratti con successo! Completa gli ingredienti prima di salvare.");
+        }
+      } catch (err) {
+        alert("Impossibile estrarre i dati automaticamente. Compila i campi manualmente.");
+      }
+    }
+
+function openRecipe(id) {
+      // Troviamo la ricetta convertendo entrambi gli ID in stringhe per evitare errori di tipo
+      const r = allRecipes.find(item => String(item.id) === String(id));
+      
+      if (!r) {
+        alert("Impossibile trovare la ricetta selezionata.");
+        return;
+      }
+
+      document.getElementById('view-content').innerHTML = `
+        <div class="text-center">
+          <span class="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full uppercase">${r.categoria || 'Generale'}</span>
+          <h2 class="text-3xl font-fun text-gray-800 mt-2">${r.titolo || ''}</h2>
+          ${r.tempo ? `<p class="text-sm text-gray-500 mt-1">⏱️ Tempo di preparazione: ${r.tempo}</p>` : ''}
+        </div>
+        ${r.immagine_url ? `<img src="${r.immagine_url}" class="w-full h-64 object-cover rounded-xl shadow mt-4">` : ''}
+        ${r.ingredienti ? `
+          <div class="mt-4">
+            <h3 class="text-lg font-bold font-fun text-amber-600 border-b pb-1">🛒 Ingredienti</h3>
+            <p class="whitespace-pre-line text-sm mt-2 text-gray-700">${r.ingredienti}</p>
+          </div>
+        ` : ''}
+        ${r.preparazione ? `
+          <div class="mt-4">
+            <h3 class="text-lg font-bold font-fun text-amber-600 border-b pb-1">👩‍🍳 Preparazione</h3>
+            <p class="whitespace-pre-line text-sm mt-2 text-gray-700">${r.preparazione}</p>
+          </div>
+        ` : ''}
+        ${r.note ? `
+          <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mt-4">
+            <h3 class="text-sm font-bold text-amber-800">📝 Note aggiuntive</h3>
+            <p class="whitespace-pre-line text-sm mt-1 text-amber-900">${r.note}</p>
+          </div>
+        ` : ''}
+        ${r.fonte ? `
+          <div class="mt-4 text-xs text-gray-400">
+            Fonte: <a href="${r.fonte}" target="_blank" class="text-amber-600 underline">${r.fonte}</a>
+          </div>
+        ` : ''}
+      `;
+      
+      toggleModal('view-modal');
+    }
+
+    // Caricamento iniziale
+    fetchRecipes();
+  </script>
+</body>
+</html>
+  </script>
+</body>
+</html>
